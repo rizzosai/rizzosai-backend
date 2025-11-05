@@ -140,7 +140,7 @@ def homepage():
     return render_template('homepage.html')
 
 @app.route('/aff=<affiliate_code>')
-def affiliate_page(affiliate_code):
+def main_affiliate_page(affiliate_code):
     # Find affiliate by email prefix
     customers = load_json(CUSTOMERS_FILE)
     affiliate_email = None
