@@ -30,6 +30,60 @@
         {% endif %}
     </div>
 
+    <!-- Domain Management Section -->
+    <div class="card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+        <h3>🌐 Domain Management Center</h3>
+        <p>Manage your domains and hosting from your personal back office</p>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top: 20px;">
+            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+                <h4>🏗️ Hosting Platform</h4>
+                <p>Deploy and manage your sites</p>
+                <a href="https://render.com" target="_blank" style="background: #46e3b7; color: #000; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Access Render</a>
+            </div>
+            
+            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+                <h4>🌍 Namecheap</h4>
+                <p>Premium domain registrar</p>
+                <a href="https://namecheap.com" target="_blank" style="background: #ff6c37; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Buy Domains</a>
+            </div>
+            
+            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+                <h4>🚀 GoDaddy</h4>
+                <p>Alternative registrar</p>
+                <a href="https://godaddy.com" target="_blank" style="background: #1bbc9c; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Register Now</a>
+            </div>
+        </div>
+        
+        <div style="margin-top: 15px; background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+            <h4>⚡ Quick Setup Guide</h4>
+            <ol style="margin: 10px 0;">
+                <li>Purchase your domain from Namecheap</li>
+                <li>Set up hosting on Render</li>
+                <li>Connect your domain to your Render app</li>
+                <li>Start earning with your new domain!</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- Purchased Domains Section -->
+    {% if customer.purchased_domains %}
+    <div class="card" style="background: #f8f9fa; border-left: 4px solid #28a745;">
+        <h3>🌐 Your Purchased Domains</h3>
+        {% for domain in customer.purchased_domains %}
+        <div style="background: white; padding: 15px; margin: 10px 0; border-radius: 8px; border: 1px solid #dee2e6;">
+            <h4 style="color: #28a745; margin: 0;">{{ domain.domain }}</h4>
+            <p style="margin: 5px 0;">Purchased: {{ domain.purchased_date[:10] }}</p>
+            <p style="margin: 5px 0;">Status: <span style="color: #28a745; font-weight: bold;">{{ domain.status.title() }}</span></p>
+            <div style="margin-top: 10px;">
+                <a href="https://render.com" target="_blank" style="background: #46e3b7; color: #000; padding: 8px 15px; text-decoration: none; border-radius: 4px; margin-right: 10px;">Deploy to Render</a>
+                <a href="https://ap.www.namecheap.com/domains/domaincontrolpanel/{{ domain.domain }}" target="_blank" style="background: #ff6c37; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px;">Manage DNS</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     <div class="card">
         <h3>Commission Status</h3>
         <p><strong>Total Earned:</strong> ${{ "%.2f"|format(commissions.total_earned) }}</p>

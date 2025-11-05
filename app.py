@@ -307,10 +307,91 @@ def handle_trial_converted():
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 400
 
+@app.route('/webhook/domain-purchase', methods=['POST'])
+def webhook_domain_purchase():
+    """Webhook to handle domain purchases from sales.rizzosai.com"""
+    try:
+        data = request.get_json()
+        customer_email = data.get('email')
+        domain_name = data.get('domain')
+        purchase_amount = data.get('amount', 0)
+        
+        if not customer_email or not domain_name:
+            return jsonify({'status': 'error', 'message': 'Missing email or domain'}), 400
+        
+        customers = load_json(CUSTOMERS_FILE)
+        
+        # Create customer if doesn't exist
+        if customer_email not in customers:
+            customers[customer_email] = {
+                'email': customer_email,
+                'signup_date': datetime.now().isoformat(),
+                'package_level': 1,  # Default to Basic Starter
+                'purchased_domains': []
+            }
+        
+        # Add domain to customer's purchased domains
+        if 'purchased_domains' not in customers[customer_email]:
+            customers[customer_email]['purchased_domains'] = []
+        
+        domain_info = {
+            'domain': domain_name,
+            'purchased_date': datetime.now().isoformat(),
+            'amount_paid': purchase_amount,
+            'status': 'active'
+        }
+        
+        customers[customer_email]['purchased_domains'].append(domain_info)
+        save_json(CUSTOMERS_FILE, customers)
+        
+        # Add to commission queue
+        package_level = customers[customer_email].get('package_level', 1)
+        add_to_commission_queue(customer_email, package_level)
+        
+        # Process commissions
+        process_next_5_commission(purchase_amount, package_level)
+        
+        return jsonify({
+            'status': 'success',
+            'message': f'Domain {domain_name} registered for {customer_email}',
+            'redirect_url': f'/domain-purchase-redirect?email={customer_email}&domain={domain_name}'
+        })
+        
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 400
+
 @app.route('/logout')
 def logout():
     session.pop('customer_email', None)
     return redirect(url_for('home'))
+
+@app.route('/domain-purchase-redirect')
+def domain_purchase_redirect():
+    """Redirect users to their back office after domain purchase from sales.rizzosai.com"""
+    customer_email = request.args.get('email')
+    domain_name = request.args.get('domain')
+    
+    if not customer_email:
+        return redirect(url_for('home'))
+    
+    # Set session and redirect to dashboard
+    session['customer_email'] = customer_email
+    
+    # Log the domain purchase
+    customers = load_json(CUSTOMERS_FILE)
+    if customer_email in customers:
+        if 'purchased_domains' not in customers[customer_email]:
+            customers[customer_email]['purchased_domains'] = []
+        
+        if domain_name and domain_name not in customers[customer_email]['purchased_domains']:
+            customers[customer_email]['purchased_domains'].append({
+                'domain': domain_name,
+                'purchased_date': datetime.now().isoformat(),
+                'status': 'active'
+            })
+            save_json(CUSTOMERS_FILE, customers)
+    
+    return redirect(url_for('dashboard'))
 
 @app.route('/terms')
 def terms():
