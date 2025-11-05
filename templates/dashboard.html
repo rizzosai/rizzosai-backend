@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Rizzos AI - Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .nav { background: #f8f9fa; padding: 15px; margin-bottom: 20px; }
+        .nav a { margin-right: 20px; text-decoration: none; color: #007cba; }
+        .card { border: 1px solid #ddd; padding: 20px; margin: 10px 0; }
+        .commission-item { background: #f0f8ff; padding: 10px; margin: 5px 0; border-left: 4px solid #007cba; }
+        .queue-status { background: #fff3cd; padding: 15px; border: 1px solid #ffeaa7; }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <a href="/dashboard">Dashboard</a>
+        <a href="/training">Training Center</a>
+        <a href="/queue-dashboard">Queue Status</a>
+        <a href="/logout">Logout</a>
+    </div>
+
+    <h1>Welcome, {{ customer.email }}!</h1>
+    
+    <div class="card">
+        <h3>Your Package: {{ packages[package_level|string].name if package_level > 0 else 'Free Trial' }}</h3>
+        <p>Level: {{ package_level }}</p>
+        {% if package_level > 0 %}
+            <p>Price: ${{ packages[package_level|string].price }}/day</p>
+            <p>Features: {{ ', '.join(packages[package_level|string].features) }}</p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h3>Commission Status</h3>
+        <p><strong>Total Earned:</strong> ${{ "%.2f"|format(commissions.total_earned) }}</p>
+        
+        {% if queue_position %}
+            <div class="queue-status">
+                <p><strong>Queue Position:</strong> #{{ queue_position }}</p>
+                <p>You'll earn commission from the next {{ 5 - ((queue_position - 1) % 5) }} customer purchases!</p>
+            </div>
+        {% else %}
+            <p>You're not currently in the commission queue. Make a purchase to join!</p>
+        {% endif %}
+        
+        {% if commissions.payments %}
+            <h4>Recent Payments:</h4>
+            {% for payment in commissions.payments[-5:] %}
+                <div class="commission-item">
+                    <strong>${{ "%.2f"|format(payment.amount) }}</strong> 
+                    from Level {{ payment.from_package_level }} purchase
+                    <br><small>{{ payment.date[:10] }}</small>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h3>Affiliate Link</h3>
+        <p>Share this link to refer new customers:</p>
+        <input type="text" value="https://rizzosai.com/aff={{ customer.email.split('@')[0] }}" 
+               style="width: 100%; padding: 10px;" readonly onclick="this.select()">
+        <br><br>
+        <p><strong>Your Affiliate Code:</strong> {{ customer.email.split('@')[0] }}</p>
+    </div>
+</body>
+</html>

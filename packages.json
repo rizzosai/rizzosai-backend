@@ -1,0 +1,38 @@
+{
+  "1": {
+    "name": "Basic Starter",
+    "price": 29,
+    "billing": "daily",
+    "features": ["Basic AI Tools", "Email Support", "1 User License", "Next 5 Commission Access"]
+  },
+  "2": {
+    "name": "Starter Tools", 
+    "price": 97,
+    "billing": "daily",
+    "features": ["Advanced AI Tools", "Priority Support", "5 User Licenses", "Custom Integrations", "Enhanced Commission Tracking"]
+  },
+  "3": {
+    "name": "Professional",
+    "price": 197, 
+    "billing": "daily",
+    "features": ["Pro AI Suite", "24/7 Support", "25 User Licenses", "API Access", "Advanced Analytics", "VIP Commission Perks"]
+  },
+  "4": {
+    "name": "Empire",
+    "price": 497,
+    "billing": "daily", 
+    "features": ["Enterprise AI", "Dedicated Manager", "100 User Licenses", "White Label", "Custom Development", "Premium Commission Bonuses"]
+  },
+  "5": {
+    "name": "Enterprise",
+    "price": 999,
+    "billing": "daily",
+    "features": ["Ultimate AI Suite", "24/7 Dedicated Team", "Unlimited Users", "Full White Label", "Custom Everything", "Maximum Commission Potential", "Your Own Kingdom to Freedom"]
+  },
+  "6": {
+    "name": "Admin",
+    "price": 0,
+    "billing": "free",
+    "features": ["Full System Access", "All Features", "Admin Dashboard", "Commission Management", "User Management"]
+  }
+}
