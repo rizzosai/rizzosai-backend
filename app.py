@@ -29,6 +29,49 @@ def load_commission_queue():
     if os.path.exists(COMMISSION_QUEUE_FILE):
         with open(COMMISSION_QUEUE_FILE, 'r') as f:
             return json.load(f)
+
+# --- SALES AFFILIATE ROUTE (moved after app definition) ---
+@app.route('/sales/aff=<affiliate_code>', methods=['GET'])
+def sales_affiliate_page(affiliate_code):
+    # Optionally, look up affiliate info for display
+    customers = load_json(CUSTOMERS_FILE)
+    affiliate_email = None
+    for email, data in customers.items():
+        if email.split('@')[0] == affiliate_code:
+            affiliate_email = email
+            break
+    return render_template('sales/index.html', affiliate_code=affiliate_code, affiliate_email=affiliate_email)
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+import json
+import os
+from datetime import datetime, timedelta
+
+app = Flask(__name__)
+app.secret_key = 'your-secret-key-here'
+
+# File paths
+CUSTOMERS_FILE = 'customers.json'
+PACKAGES_FILE = 'packages.json'
+COMMISSIONS_FILE = 'commissions.json'
+COMMISSION_QUEUE_FILE = 'commission_queue.json'
+TRIAL_CUSTOMERS_FILE = 'trial_customers.json'
+LEADS_FILE = 'leads.json'
+
+# Helper functions
+def load_json(filename):
+    if os.path.exists(filename):
+        with open(filename, 'r') as f:
+            return json.load(f)
+    return {}
+
+def save_json(filename, data):
+    with open(filename, 'w') as f:
+        json.dump(data, f, indent=2)
+
+def load_commission_queue():
+    if os.path.exists(COMMISSION_QUEUE_FILE):
+        with open(COMMISSION_QUEUE_FILE, 'r') as f:
+            return json.load(f)
     return {"queue": [], "completed": [], "total_signups_processed": 0}
 
 def save_commission_queue(queue_data):
@@ -404,3 +447,51 @@ def privacy():
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(debug=False, host='0.0.0.0', port=port)
+
+
+# --- SALES PAGE INTEGRATION ---
+from flask import flash
+
+@app.route('/sales', methods=['GET'])
+def sales_page():
+    return render_template('sales/index.html', affiliate_code=None, affiliate_email=None)
+
+@app.route('/sales/domain-purchase', methods=['POST'])
+def sales_domain_purchase():
+    name = request.form.get('name')
+    email = request.form.get('email')
+    domain = request.form.get('domain')
+    affiliate_code = request.form.get('affiliate_code')
+    if not name or not email or not domain:
+        flash('All fields are required.')
+        return redirect(url_for('sales_page'))
+
+    # Forward to internal webhook logic (simulate as internal call)
+    customers = load_json(CUSTOMERS_FILE)
+    if email not in customers:
+        customers[email] = {
+            'email': email,
+            'signup_date': datetime.now().isoformat(),
+            'package_level': 1,
+            'purchased_domains': [],
+            'referred_by': affiliate_code if affiliate_code else None
+        }
+    if 'purchased_domains' not in customers[email]:
+        customers[email]['purchased_domains'] = []
+    domain_info = {
+        'domain': domain,
+        'purchased_date': datetime.now().isoformat(),
+        'amount_paid': 0,
+        'status': 'pending',
+        'affiliate_code': affiliate_code if affiliate_code else None
+    }
+    customers[email]['purchased_domains'].append(domain_info)
+    save_json(CUSTOMERS_FILE, customers)
+    package_level = customers[email].get('package_level', 1)
+    add_to_commission_queue(email, package_level)
+    process_next_5_commission(0, package_level)
+    return redirect(url_for('sales_success'))
+
+@app.route('/sales/success', methods=['GET'])
+def sales_success():
+    return render_template('sales/success.html')
